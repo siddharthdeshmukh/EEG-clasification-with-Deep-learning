@@ -1,8 +1,3 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.pipeline import Pipeline
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.model_selection import ShuffleSplit, cross_val_score
 
 from mne import Epochs, pick_types, find_events
@@ -21,7 +16,7 @@ print(__doc__)
 def load_data(user):
 
     tmin, tmax = -1., 4.
-    event_id = dict(LEFT_HAND=3, RIGHT_HAND=2)
+    event_id = dict(LEFT_HAND=2, RIGHT_HAND=3)
     raw_edf = []
     path = op.join('data_i2r',user)
     directories = os.listdir(path)
@@ -43,12 +38,13 @@ def load_data(user):
 
     picks = pick_types(raw.info, meg=False, eeg=True, stim=False, eog=False,
                    exclude='bads')
+    print events[:10]
 
-    # Read epochs (train will be done only between 1 and 2s)
+    # Read epochs (train will be done only between 0.5 and 2.5s)
     # Testing will be done with a running classifier
     epochs = Epochs(raw, events, event_id, tmin, tmax, proj=True, picks=picks,
                 baseline=None, preload=True)
-    epochs_train = epochs.copy().crop(tmin=1., tmax=2.)
+    epochs_train = epochs.copy().crop(tmin=0.5, tmax=2.5)
     labels = epochs.events[:, -1] - 2
 
     epochs_data = epochs.get_data()

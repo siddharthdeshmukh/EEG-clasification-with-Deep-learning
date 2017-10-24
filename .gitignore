@@ -99,3 +99,10 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# compile python files
+.pyc
+
+#Data
+/Data/*
+/data_i2r/*
