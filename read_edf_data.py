@@ -20,6 +20,7 @@ def load_data(data_directory, user,training,trainOrTest):
     for data_folder in dir:
         file_list = glob.glob(data_directory + '/' + user + '/'+ data_folder + '/' +training + '/*.edf')
         for datafile in file_list:
+            print(datafile)
             raw = pyedflib.EdfReader(datafile)
             annotations = raw.readAnnotations()
             channels = raw.signals_in_file
@@ -28,7 +29,7 @@ def load_data(data_directory, user,training,trainOrTest):
                 sigbufs[i, :] = raw.readSignal(i)
 
             # create band-pass filter for the  8--30 Hz where the power change is expected
-            (b, a) = signal.butter(3, np.array([8, 30]) / (raw.getSampleFrequencies()[0] / 2), 'band')
+            (b, a) = signal.butter(3, np.array([4, 30]) / (raw.getSampleFrequencies()[0] / 2), 'band')
             # band-pass filter the EEG
             filt_data = signal.lfilter(b, a, sigbufs, 1)
             # extract trials
