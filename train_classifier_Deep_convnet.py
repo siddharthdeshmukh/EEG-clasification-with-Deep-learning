@@ -48,9 +48,27 @@ def train(x_train, y_train,X_test,y_test):
 
 def evaluate_model(model,test,y_test):
     X_test = test.reshape(test.shape[0], 1, test.shape[1], test.shape[2])
-    Y_test = np_utils.to_categorical(y_test, 3)
-    loss,acc = model.evaluate(X_test, Y_test, verbose=0)
-    print loss,acc
+    Y_test = np_utils.to_categorical(y_test, 2)
+    y_pred = model.predict(X_test,batch_size=30)
+    Y_pred = np.argmax(y_pred, axis=1)
+    print(y_pred)
+    classes = ['LEFT_HAND','RIGHT_HAND']
+    confusion_metric =  metrics.confusion_matrix(np.argmax(Y_test,axis=1),Y_pred,labels=[0,1])
+    loss,acc = model.evaluate(X_test, Y_test,batch_size=30,verbose=0)
+    plt.title('Confusion Metrics')
+    ax = plt.gca()  # get the current axes
+    PCM = ax.get_children()[2]  # get the mappable, the 1st and the 2nd are the x and y axes
+#    plt.colorbar(PCM, ax=ax)
+    tick_marks = np.arange(len(['LEFT_HAND','RIGHT_HAND']))
+    plt.xticks(tick_marks,classes)
+    plt.yticks(tick_marks,classes)
+    plt.tight_layout()
+    plt.ylabel('Actual Class')
+    plt.xlabel('Predicted Class')
+    plt.imshow(confusion_metric)
+    plt.show()
+    print ("Loss is %f ", loss)
+    print("Accuracy is %f ", acc)
 
 
 
@@ -67,12 +85,12 @@ if __name__ == '__main__':
     model, history = train(X_train, y_train, X_test, y_test)
     evaluate_model(model, test=X_test, y_test=y_test)
     print history.history.keys()
-    plt.plot(history.history['acc'])
-    plt.plot(history.history['val_acc'])
-    plt.plot(history.history['val_acc'])
-    plt.title('model accuracy')
-    plt.ylabel('accuracy')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
-    plt.show()
+    # plt.plot(history.history['acc'])
+    # plt.plot(history.history['val_acc'])
+    # plt.plot(history.history['val_acc'])
+    # plt.title('model accuracy')
+    # plt.ylabel('accuracy')
+    # plt.xlabel('epoch')
+    # plt.legend(['train', 'test'], loc='upper left')
+    # plt.show()
     plot_model(model, to_file='model_deep.png')

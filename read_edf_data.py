@@ -28,8 +28,8 @@ def load_data(data_directory, user,training,trainOrTest):
             for i in np.arange(raw.signals_in_file):
                 sigbufs[i, :] = raw.readSignal(i)
 
-            # create band-pass filter for the  8--30 Hz where the power change is expected
-            (b, a) = signal.butter(3, np.array([4, 30]) / (raw.getSampleFrequencies()[0] / 2), 'band')
+            # create band-pass filter for the  4--40 Hz where the power change is expected
+            (b, a) = signal.butter(3, np.array([4, 40]) / (raw.getSampleFrequencies()[0] / 2), 'band')
             # band-pass filter the EEG
             filt_data = signal.lfilter(b, a, sigbufs, 1)
             # extract trials
@@ -38,9 +38,9 @@ def load_data(data_directory, user,training,trainOrTest):
 
 
             for i in annot_list:
-                if i[2] in ['121', '122']:
+                if i[2] in ['121', '122', '124']:
                     start.append(int(i[0] * raw.getSampleFrequencies()[0]))
-            # start = [float(i[0]) * d.sample_rate for i in d.annotations]
+            #start = [int(i[0]) * raw.getSampleFrequencies()[0] for i in annot_list if i[2] in ['121','122','124']]
             duration = [float(i[1]) * raw.getSampleFrequencies()[0] for i in annot_list]
             offset = [0, np.min(duration)]
             x, y = offset
@@ -60,6 +60,8 @@ def load_data(data_directory, user,training,trainOrTest):
                     y.append(1)
                 if label == '122':
                     y.append(2)
+                if label == '124':
+                    y.append(3)
 
             y = y[0:n]
             if(trainOrTest):
@@ -69,6 +71,9 @@ def load_data(data_directory, user,training,trainOrTest):
                 train.extend(trials)
                 y_train.extend(y)
 
+    #train = np.zeros((channels, raw.getNSamples()[0]))
+    for trainArr in train:
+        print trainArr
     train = np.asarray(train)
     y_train = np.asarray(y_train)
 
