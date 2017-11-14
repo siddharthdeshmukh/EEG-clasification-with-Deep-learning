@@ -23,14 +23,10 @@ def load_data(user,type_folder,train):
     directories = os.listdir(path)
     for data_folder in directories:
         file_list = glob.glob('data_i2r' + '/' + user + '/' + data_folder + '/' + type_folder + '/*.edf')
-
+        print file_list
         raw_files = [read_raw_edf(raw_fnames, preload=True, stim_channel='auto')for raw_fnames in file_list]
         raw_edf.extend(raw_files)
-
-
     #events = find_events(raw, shortest_event=0, stim_channel='STI 014')
-
-
     samplin_frequency =250;
 
 
@@ -73,6 +69,7 @@ def load_data(user,type_folder,train):
 
         # Read epochs (train will be done only between 0.5 and 2.5s)
         # Testing will be done with a running classifier
+        print edf_raw
         epochs = Epochs(edf_raw, events_arr, event_id, tmin, tmax, proj=True, picks=picks,
                 baseline=None, preload=True)
         tmaximum =2.5
