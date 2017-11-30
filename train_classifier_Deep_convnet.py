@@ -10,6 +10,7 @@ from keras import optimizers
 import read_edf_mne
 import matplotlib.pyplot as plt
 from keras.utils import plot_model
+import read_bci_data
 
 '''
 Training model for classification of EEG samples into motor imagery classes
@@ -20,35 +21,37 @@ Training model for classification of EEG samples into motor imagery classes
 
 def train(x_train, y_train,X_test,y_test):
     #1. Define Model.
+    classes_len = len(np.unique(y_train))
     X_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1], x_train.shape[2])
-    Y_train = np_utils.to_categorical(y_train, 2)
+    Y_train = np_utils.to_categorical(y_train, classes_len)
     X_test = X_test.reshape(X_test.shape[0], 1, X_test.shape[1], X_test.shape[2])
-    y_test = np_utils.to_categorical(y_test, 2)
+    y_test = np_utils.to_categorical(y_test, classes_len)
     model = Sequential()
-    model.add(Convolution2D(25, (3, 1), activation='elu', input_shape=(X_train.shape[1],X_train.shape[2], X_train.shape[3])))
+    model.add(Convolution2D(25, (4, 1), activation='elu', input_shape=(X_train.shape[1],X_train.shape[2], X_train.shape[3])))
     #model.add(MaxPooling2D(pool_size=(3,1)))
-    model.add(Convolution2D(50, (3, 1), activation='elu'))
+    model.add(Convolution2D(50, (4, 1), activation='elu'))
     #model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(3, 1)))
     model.add(Convolution2D(100, (3, 1), activation='elu'))
     model.add(MaxPooling2D(pool_size=(2, 1)))
     model.add(Convolution2D(200, (2, 1), activation='elu'))
-    model.add(MaxPooling2D(pool_size=(2, 1)))
+   # model.add(MaxPooling2D(pool_size=(2, 1)))
     model.add(Flatten())
     #model.add(Dense(128, activation='softmax'))
     #model.add(BatchNormalization())
-    #model.add(Dropout(0.25))
-    model.add(Dense(2, activation='softmax'))
+    model.add(Dropout(0.25))
+    model.add(Dense(classes_len, activation='softmax'))
     #model.add(BatchNormalization())
     opt = optimizers.SGD(lr=0.005)
     model.compile(loss='categorical_crossentropy',optimizer=opt,metrics=['accuracy'])
     print model.summary()
-    history =model.fit(X_train, Y_train,validation_data=(X_test,y_test), batch_size=50,epochs=10, verbose=1)
+    history =model.fit(X_train, Y_train,validation_data=(X_test,y_test), batch_size=50,epochs=20, verbose=1)
     return model,history
 
 def evaluate_model(model,test,y_test):
     X_test = test.reshape(test.shape[0], 1, test.shape[1], test.shape[2])
-    Y_test = np_utils.to_categorical(y_test, 2)
+    classes_len = len(np.unique(y_train))
+    Y_test = np_utils.to_categorical(y_test, classes_len)
     y_pred = model.predict(X_test,batch_size=100)
     Y_pred = np.argmax(y_pred, axis=1)
     print(y_pred)
@@ -77,8 +80,10 @@ if __name__ == '__main__':
     user = 'S4'
     # get train data
     # (X_train, y_train) = read_edf_data.load_data(data_directory, user, 'DataTraining', True)
-    (X_train, y_train) = read_edf_mne.load_data(user, 'DataTraining', train=True)
-    (X_test, y_test) = read_edf_mne.load_data(user, 'DataTesting', train=False)
+    #(X_train, y_train) = read_edf_mne.load_data(user, 'DataTraining', train=True)
+    #(X_test, y_test) = read_edf_mne.load_data(user, 'DataTesting', train=False)
+    # load Bci data set
+    (X_train, y_train, X_test, y_test) = read_bci_data.load_data(training=True)
     # get Test data
     # (X_test, y_test) = read_edf_data.load_data(data_directory, user, 'DataTesting', False)
     model, history = train(X_train, y_train, X_test, y_test)

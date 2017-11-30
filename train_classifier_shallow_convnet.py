@@ -11,6 +11,7 @@ from keras import optimizers
 import read_edf_mne
 import matplotlib.pyplot as plt
 from keras.utils import plot_model
+import read_bci_data
 
 '''
 Training model for classification of EEG samples into motor imagery classes
@@ -35,7 +36,7 @@ def train(x_train, y_train,X_test,y_test):
     opt = optimizers.SGD(lr=0.005)
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
     print model.summary()
-    history = model.fit(X_train, Y_train, validation_data=(X_test, y_test), batch_size=100, epochs=20, verbose=1)
+    history = model.fit(X_train, Y_train, batch_size=100, epochs=1, verbose=1)
     return model, history
 
 def evaluate_model(model,test,y_test):
@@ -47,19 +48,20 @@ def evaluate_model(model,test,y_test):
     print(y_pred)
     classes = ['LEFT_HAND','RIGHT_HAND']
     confusion_metric =  metrics.confusion_matrix(np.argmax(Y_test,axis=1),Y_pred,labels=[0,1])
+    print metrics.classification_report(np.argmax(Y_test,axis=1),Y_pred)
     loss,acc = model.evaluate(X_test, Y_test,batch_size=30,verbose=0)
     plt.title('Confusion Metrics')
     ax = plt.gca()  # get the current axes
     PCM = ax.get_children()[2]  # get the mappable, the 1st and the 2nd are the x and y axes
-#    plt.colorbar(PCM, ax=ax)
-#     tick_marks = np.arange(len(['LEFT_HAND','RIGHT_HAND']))
-#     plt.xticks(tick_marks,classes)
-#     plt.yticks(tick_marks,classes)
-#     plt.tight_layout()
-#     plt.ylabel('Actual Class')
-#     plt.xlabel('Predicted Class')
-#     plt.imshow(confusion_metric)
-#     plt.show()
+    #plt.colorbar(PCM, ax=ax)
+    tick_marks = np.arange(len(['LEFT_HAND','RIGHT_HAND']))
+    plt.xticks(tick_marks,classes)
+    plt.yticks(tick_marks,classes)
+    plt.tight_layout()
+    plt.ylabel('Actual Class')
+    plt.xlabel('Predicted Class')
+    plt.imshow(confusion_metric)
+    plt.show()
     print ("Loss is %f ", loss)
     print("Accuracy is %f ", acc)
 
@@ -70,19 +72,23 @@ if __name__ == '__main__':
     user = 'S2'
     # get train data
     #(X_train, y_train) = read_edf_data.load_data(data_directory, user, 'DataTraining', True)
+
     (X_train, y_train) = read_edf_mne.load_data(user,'DataTraining',train=True)
     (X_test, y_test) = read_edf_mne.load_data(user, 'DataTesting', train=False)
+    # load bci competition data set
+    #(X_train, y_train,X_test,y_test) = read_bci_data.load_data(training=True)
+
     # get Test data
     #(X_test, y_test) = read_edf_data.load_data(data_directory, user, 'DataTesting', False)
     model,history = train(X_train,y_train,X_test,y_test)
     evaluate_model(model,test=X_test,y_test=y_test)
-    print history.history.keys()
-    plt.plot(history.history['acc'])
-    plt.plot(history.history['val_acc'])
-    plt.plot(history.history['val_acc'])
-    plt.title('model accuracy')
-    plt.ylabel('accuracy')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
-    plt.show()
+
+    # plt.plot(history.history['acc'])
+    # plt.plot(history.history['val_acc'])
+    # plt.plot(history.history['val_acc'])
+    # plt.title('model accuracy')
+    # plt.ylabel('accuracy')
+    # plt.xlabel('epoch')
+    # plt.legend(['train', 'test'], loc='upper left')
+    # plt.show()
     plot_model(model, to_file='model_shallow.png')

@@ -70,22 +70,38 @@ def load_data(user,type_folder,train):
         # Read epochs (train will be done only between 0.5 and 2.5s)
         # Testing will be done with a running classifier
         print edf_raw
-        epochs = Epochs(edf_raw, events_arr, event_id, tmin, tmax, proj=True, picks=picks,
-                baseline=None, preload=True)
+        if train:
+            epochs = Epochs(edf_raw, events_arr, event_id, tmin, tmax, proj=True, picks=picks,
+                    baseline=None, preload=True)
+        if not train:
+            events = find_events(edf_raw, shortest_event=0, stim_channel='STI 014')
+            epochs = Epochs(edf_raw, events_arr, event_id,tmin=-1,tmax=6, proj=True, picks=picks,
+                             baseline=None, preload=True)
+            #print epochs.get_data()
         tmaximum =2.5
         tminimum = 0.5
         epochs_train = []
-        while (tmaximum<4.1):
-            epochs_train.append(epochs.copy().crop(tmin=tminimum, tmax=tmaximum))
-            tminimum=tminimum+0.1
-            tmaximum=tmaximum+0.1
+        if train:
 
-        labels = [epochs_from_train.events[:, -1] - 2 for epochs_from_train in epochs_train]
-        labels_array = np.array(labels)
-        epochs_data = epochs.get_data()
-        epochs_data_train = [epochs_from_train.get_data() for epochs_from_train in epochs_train]
-        epochs_array_train = np.array(epochs_data_train)
+            while (tmaximum<4.1):
+                epochs_train.append(epochs.copy().crop(tmin=tminimum, tmax=tmaximum))
+                tminimum=tminimum+0.1
+                tmaximum=tmaximum+0.1
+
+            labels = [epochs_from_train.events[:, -1] - 2 for epochs_from_train in epochs_train]
+            labels_array = np.array(labels)
+            epochs_data = epochs.get_data()
+            epochs_data_train = [epochs_from_train.get_data() for epochs_from_train in epochs_train]
+            epochs_array_train = np.array(epochs_data_train)
+
+        if not train:
+            labels = [epochs.events[:, -1] - 2 ]
+            labels_array = np.array(labels)
+            epochs_data = epochs.get_data()
+            epochs_data_train = [epochs_data]
+            epochs_array_train = np.array(epochs_data_train)
         #split data into training and testing set
+
 
         i=0
         cv = ShuffleSplit(10, test_size=0.2, random_state=42)

@@ -2,6 +2,7 @@ import numpy as np
 from sklearn import svm, pipeline, base, metrics
 import eegtools
 import read_edf_data
+import read_edf_mne
 
 '''
 Training model for classification of EEG samples into motor imagery classes
@@ -33,9 +34,9 @@ class ChanVar(base.BaseEstimator, base.TransformerMixin):
 
 def train():
     data_directory = 'data_i2r';
-    user = 'subject1'
-    (train, y_train) = read_edf_data.load_data(data_directory, user, 'DataTraining', True)
-    (test, y_test) = read_edf_data.load_data(data_directory, user, 'DataTraining', False)
+    user = 'S2'
+    (train, y_train) = read_edf_mne.load_data(user ,'DataTraining', True)
+    (test, y_test) = read_edf_mne.load_data(user, 'DataTraining', False)
 
     pipe = pipeline.Pipeline(
     [('csp', CSP()), ('chan_var', ChanVar()), ('svm', svm.SVC(kernel='linear'))])
